@@ -1,27 +1,16 @@
 ---
 title: "analysis of young sc RNA seq"
-author: "Chris"
+author: "Chris Hui"
 date: "2025-08-11"
 output: html_document
 ---
 
-
-
 ```{r}
-# All packages are available via CRAN
-# Single cell analysis
 library(Seurat)
-
-# Plotting functions
 library(tidyverse)
-```
-
-
-```{r}
 library(ggpubr)
 library(ggExtra)
 ```
-
 
 ```{r}
 Young <- read.table("/users/Chris1219/Desktop/H9_RPE_YOUNG_RawCountMatrix.txt",
@@ -33,17 +22,11 @@ Young <- read.table("/users/Chris1219/Desktop/H9_RPE_YOUNG_RawCountMatrix.txt",
 
 ```{r}
 seurat_obj_young <- CreateSeuratObject(Young, project = "RPE_scRNA")
+seurat_obj_young[["percent.mt"]] <- PercentageFeatureSet(seurat_obj_young, pattern = "^MT-")
+seurat_obj_young[["percent.rb"]] <- PercentageFeatureSet(seurat_obj_young, pattern = "^RPS|^RPL")
 
 # Add metadata
 seurat_obj_young[["condition"]] <- "Control"
-
-seurat_obj_young[["percent.mt"]] <- PercentageFeatureSet(seurat_obj_young, pattern = "^MT-")
-seurat_obj_young[["percent.rb"]] <- PercentageFeatureSet(seurat_obj_young, pattern = "^RPS|^RPL")
-```
-
-```{r}
-metadata <- seurat_obj_young@meta.data
-print(metadata[1:10,])
 ```
 
 ```{r}
@@ -64,52 +47,10 @@ seurat_obj_young <- RunUMAP(seurat_obj_young, dims = 1:30, umap.method = "uwot")
 DimPlot(seurat_obj_young, reduction = "pca")
 ```
 
-
 ```{r}
 DimPlot(seurat_obj_young, reduction = "umap")
 ```
 
-
-```{r}
-seurat_obj_young <- FindNeighbors(seurat_obj_young, dims = 1:30)
-```
-
-
-```{r}
-windows <- c(seq(0, 1, by = 0.1))
-
-for (res in windows){
-  seurat_obj_young <- FindClusters(seurat_obj_young, resolution = res, verbose = FALSE)
-}
-```
-
-
-
-```{r}
-library(clustree)
-```
-
-```{r}
-clustree_plot <- clustree(seurat_obj_young, prefix = "SCT_snn_res.")
-clustree_plot
-```
-
-
-```{r}
-metadata <- FetchData(seurat_obj_young, vars = c("seurat_clusters", "SCT_snn_res.0.6"))
-res_counts <- as.data.frame(table(metadata$SCT_snn_res.0.6))
-res_hist <- ggplot(res_counts, aes(x = Var1, y = Freq)) + 
-  geom_bar(stat = "identity") + theme_bw() + 
-  ggtitle("Number of cells per cluster", subtitle = "Cluster Resolution: 0.6")
-res_hist
-```
-
-- Don't worry too much if the PCA, clustering is different 
-- Work through integration and try to change into a file format that pySCENIC can handle
-
-- From their clustering in the publication, I want to see the transcription factors that are up/down regulated 
-
 ```{r}
 saveRDS(seurat_obj_young, file = "/Users/chris1219/Desktop/H9_RPE_YOUNG_Analysed_Object.rds")
 ```
-
