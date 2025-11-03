@@ -1,10 +1,9 @@
 ---
-title: "analysis of H9 RPE"
-author: "Chris"
+title: "analysis of aged H9 RPE"
+author: "Chris Hui"
 date: "2025-08-07"
 output: html_document
 ---
-
 
 ```{r}
 library(tidyverse)
@@ -16,26 +15,15 @@ Aged <- read.delim("/Users/Chris1219/Desktop/H9_RPE_AGED_RawCountMatrix.tsv",
                           header = TRUE,
                           row.names = 1,
                           check.names = FALSE)
-
 ```
-
 
 ```{r}
 library(Seurat)
-
-# Create Seurat objects
 seurat_obj_aged <- CreateSeuratObject(Aged, project = "RPE_scRNA")
 seurat_obj_aged[["condition"]] <- "Aged"
 
 seurat_obj_aged[["percent.mt"]] <- PercentageFeatureSet(seurat_obj_aged, pattern = "^MT-")
 seurat_obj_aged[["percent.rb"]] <- PercentageFeatureSet(seurat_obj_aged, pattern = "^RPS|^RPL")
-
-```
-
-
-```{r}
-metadata <- seurat_obj_aged@meta.data
-print(metadata[1:10,])
 ```
 
 
@@ -45,11 +33,6 @@ seurat_obj_aged <- SCTransform(seurat_obj_aged,
                           conserve.memory = TRUE, verbose = FALSE)
 ```
 
-- WHen I finish running this normalization code, 
-does not appear 
- Calculating variance for residuals of type pearson for 17722 genes
- Calculating residuals of type pearson for 3000 genes
-
 ```{r}
 # Principal component analysis
 seurat_obj_aged <- RunPCA(seurat_obj_aged, verbose = FALSE)
@@ -58,55 +41,14 @@ seurat_obj_aged <- RunPCA(seurat_obj_aged, verbose = FALSE)
 seurat_obj_aged <- RunUMAP(seurat_obj_aged, dims = 1:30, umap.method = "uwot")
 ```
 
-
 ```{r}
 DimPlot(seurat_obj_aged, reduction = "pca") 
 ```
-
 
 ```{r}
 DimPlot(seurat_obj_aged, reduction = "umap")
 ```
 
 ```{r}
-seurat_obj_aged <- FindNeighbors(seurat_obj_aged, dims = 1:30)
-```
-
-```{r}
-windows <- c(seq(0, 1, by = 0.1))
-
-for (res in windows){
-  seurat_obj_aged <- FindClusters(seurat_obj_aged, resolution = res, verbose = FALSE)
-}
-```
-
-
-
-```{r}
-library(clustree)
-```
-
-
-```{r}
-clustree_plot <- clustree(seurat_obj_aged, prefix = "SCT_snn_res.")
-clustree_plot
-```
-CLustering can be random, based on the initialization 
-
-
-```{r}
-metadata <- FetchData(seurat_obj_aged, vars = c("seurat_clusters", "SCT_snn_res.0.7"))
-res_counts <- as.data.frame(table(metadata$SCT_snn_res.0.7))
-res_hist <- ggplot(res_counts, aes(x = Var1, y = Freq)) + 
-  geom_bar(stat = "identity") + theme_bw() + 
-  ggtitle("Number of cells per cluster", subtitle = "Cluster Resolution: 0.7")
-
-res_hist
-```
-
-```{r}
 saveRDS(seurat_obj_aged, file = "/Users/chris1219/Desktop/H9_RPE_AGED_Analysed_Object.rds")
 ```
-
-
-Even PCA, not the same, don't really need to be worried ?
