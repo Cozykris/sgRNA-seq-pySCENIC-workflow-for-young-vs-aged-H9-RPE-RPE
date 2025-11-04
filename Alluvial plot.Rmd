@@ -1,1 +1,79 @@
+---
+title: "alluvial plot"
+author: "Chris Hui"
+date: "2025-10-28"
+output: html_document
+---
 
+```{r}
+regulon <- read.csv("/Users/chris1219/Desktop/regulon_real.csv")
+```
+
+```{r}
+library(ggplot2)
+library(ggalluvial)
+library(dplyr)
+library(ggforce)
+```
+
+```{r}
+regulon$X[grepl("EMX1", regulon$X)]
+emx1_df <- regulon[grepl("EMX1", regulon$X), ]
+
+tf_name <- "EMX1"
+
+tf_name <- "EMX1"
+
+# Regulon 1
+regulon1 <- data.frame(
+  Transcription_factor = tf_name,
+  Target = c("PHYHIPL","DACH1","GRIA4","AHDC1","NR3C1",
+             "NR2F1-AS1","NR2F1","CHST2","LHX2","EFEMP1"),
+  Score = c(12.6186,21.8275,8.9823,10.8463,14.2244,
+            9.3649,16.1287,10.4258,13.5006,11.2749),
+  Regulon = "R1"
+)
+
+# Regulon 2
+regulon2 <- data.frame(
+  Transcription_factor = tf_name,
+  Target = c("NR2F1-AS1","ADAMTS5","PTN","GAB2","NR2F1",
+             "PITPNC1","GLRA2","HAS2-AS1","KCNJ8","ZBTB20",
+             "COLEC12","MAN1A1","MAPKAPK3","GSK3B","STX16",
+             "PCDH9","TGFB2","CBLB","FOXP4","NDP"),
+  Score = c(9.3649,6.7858,28.6528,1.6022,16.1287,
+            4.4982,22.7922,2.8188,4.9696,8.4175,
+            5.1014,5.6752,1.4429,3.0608,2.0104,
+            6.0373,6.0409,1.1921,3.9457,6.9688),
+  Regulon = "R2"
+)
+
+# Combine both regulons
+targets_all <- bind_rows(regulon1, regulon2)
+```
+
+```{r}
+i <- ggplot(targets_all,
+       aes(axis1 = Transcription_factor, axis2 = Target, y = Score)) +
+  geom_alluvium(aes(fill = Regulon), width = 0.2, colour = "black") +
+  geom_stratum(width = 0.2, fill = "grey", color = "black") +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 4) +
+  scale_x_discrete(limits = c("Transcription factor","Downstream targets"), expand = c(0.2, 0.05)) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.title.y = element_blank(),  # remove y-axis title
+    axis.text.y = element_blank(),   # remove y-axis text
+    axis.ticks.y = element_blank()   # remove y-axis ticks
+  ) +
+  labs(x = "", fill = "Regulon")    # optional: remove x-axis title
+
+i
+
+ggsave(
+  filename = "~/Desktop/EMX1_alluvial_plot.png",  # output file
+  plot = i,                             # your ggplot object
+  width = 16,                            # width in inches
+  height = 10,                           # height in inches
+  dpi = 300                              # resolution
+)
+```
