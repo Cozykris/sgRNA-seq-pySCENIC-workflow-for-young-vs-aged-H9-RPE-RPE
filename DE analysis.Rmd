@@ -54,6 +54,11 @@ de_subset$gene <- rownames(de_subset)
 ```
 
 ```{r}
+fc_cutoff <- 1     # e.g. log2 fold change threshold
+pval_cutoff <- 0.001
+```
+
+```{r}
 de_subset <- de_subset %>%
   mutate(significance = case_when(
     avg_log2FC >= fc_cutoff & p_val_adj < pval_cutoff ~ "Up in Aged",
@@ -74,11 +79,6 @@ top_FC_genes <- de_subset %>%
   filter(significance != "NS") %>%
   arrange(desc(abs(avg_log2FC))) %>%
   slice_head(n = 10)      
-```
-
-```{r}
-fc_cutoff <- 1     # e.g. log2 fold change threshold
-pval_cutoff <- 0.001
 ```
 
 ```{r}
