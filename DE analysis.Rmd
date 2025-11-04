@@ -37,5 +37,110 @@ valid_all_tfs
  
 ```
 
+```{r}
+Idents(latest_seurat_obj) <- "condition"
+
+de_age <- FindMarkers(seurat_obj, ident.1 = "Aged", ident.2 = "Young",
+                      logfc.threshold = 0, min.pct = 0.1)
+
+
+```
+
+```{r}
+de_subset <- de_age %>% 
+  filter(gene %in% valid_all_tfs)
+
+de_subset$gene <- rownames(de_subset)
+```
+
+```{r}
+de_subset <- de_subset %>%
+  mutate(significance = case_when(
+    avg_log2FC >= fc_cutoff & p_val_adj < pval_cutoff ~ "Up in Aged",
+    avg_log2FC <= -fc_cutoff & p_val_adj < pval_cutoff ~ "Up in Young",
+    TRUE ~ "Not significant"   
+  ))
+```
+
+```{r}
+top_sig_genes <- de_subset %>%
+  filter(significance != "NS") %>%
+  arrange(p_val_adj) %>%   # smallest adjusted p-value first
+  slice_head(n = 10)       # 
+```
+
+```{r}
+top_FC_genes <- de_subset %>%
+  filter(significance != "NS") %>%
+  arrange(desc(abs(avg_log2FC))) %>%
+  slice_head(n = 10)      
+```
+
+```{r}
+fc_cutoff <- 1     # e.g. log2 fold change threshold
+pval_cutoff <- 0.001
+```
+
+```{r}
+# Plot
+k <- ggplot(de_subset, aes(x = avg_log2FC, y = -log10(p_val_adj), color = significance)) +
+  geom_point(alpha = 0.7, size = 1.8) +
+  geom_text_repel(
+    data = top_sig_genes,
+    aes(label = gene),
+    size = 3,
+    max.overlaps = 20
+  ) +
+  # Add vertical lines for fold change cutoffs
+  geom_vline(xintercept = c(-fc_cutoff, fc_cutoff),
+             linetype = "dashed", color = "black") +
+  # Add horizontal line for p-value cutoff
+  geom_hline(yintercept = -log10(pval_cutoff),
+             linetype = "dashed", color = "black") +
+  scale_color_manual(values = c("Up in Aged" = "red", "Up in Young" = "blue", "Not significant" = "grey")) +
+  theme_minimal() +
+   labs(
+    title = "",
+    x = "Log2 Fold Change (Aged vs Young)",
+    y = "-Log10 (adjusted p-value)"
+  )  
+
+k
+
+ggsave("~/Desktop/volcano_sig.tiff", plot = k, device = "tiff", width = 6, height = 5, dpi = 300)
+```
+
+```{r}
+h <- ggplot(de_subset, aes(x = avg_log2FC, y = -log10(p_val_adj), color = significance)) +
+  geom_point(alpha = 0.7, size = 1.8) +
+  geom_text_repel(
+    data = top_FC_genes,
+    aes(label = gene),
+    size = 3,
+    max.overlaps = 20
+  ) +
+  # Add vertical lines for fold change cutoffs
+  geom_vline(xintercept = c(-fc_cutoff, fc_cutoff),
+             linetype = "dashed", color = "black") +
+  # Add horizontal line for p-value cutoff
+  geom_hline(yintercept = -log10(pval_cutoff),
+             linetype = "dashed", color = "black") +
+  scale_color_manual(values = c("Up in Aged" = "red", "Up in Young" = "blue", "Not significant" = "grey")) +
+  theme_minimal() +
+  labs(
+    title = "",
+    x = "Log2 Fold Change (Aged vs Young)",
+    y = "-Log10 (adjusted p-value)"
+  )  
+
+
+h
+
+ggsave("~/Desktop/volcano_FC.tiff", plot = h, device = "tiff", width = 6, height = 5, dpi = 300)
+```
+
+
+
+
 
 
