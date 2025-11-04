@@ -4,3 +4,14 @@
 ```{r}
 latest_seurat_object <- readRDS("/Users/chris1219/Desktop/seuratobject.rds")
 ```
+
+```{r,message=FALSE}
+library(here)
+library(tidyverse)
+library(Seurat)
+library(scuttle)
+library(ggplot2)
+library(ggrepel)
+library(SingleR)
+library(DT)
+```
