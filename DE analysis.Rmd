@@ -65,8 +65,8 @@ de_subset <- de_subset %>%
 ```{r}
 top_sig_genes <- de_subset %>%
   filter(significance != "NS") %>%
-  arrange(p_val_adj) %>%   # smallest adjusted p-value first
-  slice_head(n = 10)       # 
+  arrange(p_val_adj) %>%   
+  slice_head(n = 10)       
 ```
 
 ```{r}
@@ -139,6 +139,14 @@ h
 ggsave("~/Desktop/volcano_FC.tiff", plot = h, device = "tiff", width = 6, height = 5, dpi = 300)
 ```
 
+```{r}
+features_4 <- top_FC_genes$gene
+
+g <- DotPlot(subset(seurat_obj), features = features_4) + RotatedAxis() + labs(x = "Transcription factors", y = "Conditions")
+
+g
+ggsave("~/Desktop/dotplot_FC.tiff", plot = g, device = "tiff", width = 6, height = 5, dpi = 300)
+```
 
 
 
