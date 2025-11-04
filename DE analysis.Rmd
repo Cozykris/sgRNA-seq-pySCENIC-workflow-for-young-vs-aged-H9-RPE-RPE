@@ -1,8 +1,13 @@
-
+---
+title: "DE analysis "
+author: "Chris Hui"
+date: "2025-09-22"
+output: html_document
+---
 
 
 ```{r}
-latest_seurat_object <- readRDS("/Users/chris1219/Desktop/seuratobject.rds")
+seurat_obj <- readRDS("/Users/chris1219/Desktop/seuratobject.rds")
 ```
 
 ```{r,message=FALSE}
@@ -15,3 +20,22 @@ library(ggrepel)
 library(SingleR)
 library(DT)
 ```
+
+```{r}
+auc_mtx = read.csv("~/Desktop/auc_mtx_real.csv")
+auc_long <- auc_mtx %>%
+  pivot_longer(
+    cols = -Cell,       
+    names_to = "TF",    
+    values_to = "Score" 
+  )
+
+auc_long$TF_clean <- sub("\\.\\.\\..*$", "", auc_long$TF)
+
+valid_all_tfs <- intersect(auc_long$TF_clean, rownames(seurat_obj))
+valid_all_tfs
+ 
+```
+
+
+
