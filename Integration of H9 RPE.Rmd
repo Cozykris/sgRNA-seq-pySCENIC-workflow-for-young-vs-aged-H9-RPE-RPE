@@ -1,1 +1,56 @@
+---
+title: "Integration of two datasets"
+author: "Chris Hui"
+date: "2025-09-09"
+output: html_document
+---
 
+```{r}
+library(Seurat)
+library(tidyverse)
+library(ggpubr)
+library(ComplexHeatmap)
+```
+
+```{r}
+# Load objects
+control_obj <- readRDS("/Users/chris1219/Desktop/H9_RPE_YOUNG_Analysed_Object.rds")
+aged_obj <- readRDS("/Users/chris1219/Desktop/H9_RPE_AGED_Analysed_Object.rds")
+```
+
+```{r}
+# Edit globals because we need these for some reason
+options(future.globals.maxSize = 1600 * 1024^3)
+gene_list <- intersect(rownames(control_obj), rownames(aged_obj))
+object_list <- list(Control = control_obj, Aged = aged_obj)
+common_features <- SelectIntegrationFeatures(object.list = object_list, nfeatures = 3000)
+object_list <- PrepSCTIntegration(object.list = object_list, anchor.features = common_features, verbose = FALSE)
+object_anchors <- FindIntegrationAnchors(object.list = object_list, normalization.method = "SCT", anchor.features = common_features, verbose = FALSE)
+```
+
+```{r}
+seurat_obj <- IntegrateData(anchorset = object_anchors, 
+                            normalization.method = "SCT",
+                            verbose = FALSE)
+```
+
+```{r}
+# Dimensionality reduction
+seurat_obj <- RunPCA(seurat_obj, verbose = FALSE)
+seurat_obj <- RunUMAP(seurat_obj, dims = 1:30)
+
+
+batch_plot <- DimPlot(seurat_obj, group.by = "condition") + ggtitle("")
+
+batch_plot
+
+ggsave("~/Desktop/umap_plot.tiff", plot = batch_plot, device = "tiff", width = 6, height = 5, dpi = 300)
+```
+
+```{r}
+sce_obj <- as.SingleCellExperiment(seurat_obj, assay = "SCT")
+```
+
+```{r}
+saveRDS(sce_obj, file = "/Users/chris1219/Desktop/integration.rds")
+```
