@@ -8,3 +8,30 @@ output: html_document
 ```{r}
 sce_obj <- readRDS("/Users/chris1219/Desktop/integration.rds")
 ```
+
+```{r}
+library(SingleCellExperiment)
+library(SCopeLoomR)
+```
+
+```{r}
+dgem <- counts(sce_obj)
+dim(dgem)
+```
+
+```{r}
+cell.info <- colData(sce_obj)
+cell.info$nGene <- colSums(dgem>0)
+  head(cell.info)
+```
+
+```{r}
+file.name <- file.path("~/Desktop", "H9RPEcorr.loom")  # full path
+build_loom(
+  file.name = file.name,
+  dgem = dgem,
+  title = "Expression dataset for H9RPE",
+  genome = "Human",
+)
+```
+
