@@ -53,4 +53,5 @@ sce_obj <- as.SingleCellExperiment(seurat_obj, assay = "SCT")
 
 ```{r}
 saveRDS(sce_obj, file = "/Users/chris1219/Desktop/integration.rds")
+saveRDS(seurat_obj, file = "/Users/chris1219/Desktop/seuratobject.rds")
 ```
